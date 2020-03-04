@@ -1,0 +1,224 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>Jade Delight</title>
+</head>
+
+<body onload="zerocost()">
+<script language="javascript">
+	function MenuItem(name, cost)
+	{
+		this.name = name;
+		this.cost=cost;
+	}
+
+	menuItems = new Array(
+		new MenuItem("Chicken Chop Suey", 4.5),
+		new MenuItem("Sweet and Sour Pork", 6.25),
+		new MenuItem("Shrimp Lo Mein", 5.25),
+		new MenuItem("Moo Shi Chicken", 6.5),
+		new MenuItem("Fried Rice", 2.35)
+	);
+
+	function makeSelect(name, minRange, maxRange)
+	{
+		var t= "";
+		t = "<select name='" + name + "' size='1' onchange='displayAmount(this.value, this.name)'>";
+		for (j=minRange; j<=maxRange; j++)
+			t += "<option>" + j + "</option>";
+		t+= "</select>";
+		return t;
+	}
+
+	function zerocost() {
+		zero = 00;
+		for(i = 0; i < menuItems.length; i++) {
+			document.getElementsByName('cost')[i].value = zero.toFixed(2);
+		}
+		document.getElementsByName('subtotal')[0].value = zero.toFixed(2);
+		document.getElementsByName('tax')[0].value = zero.toFixed(2);
+		document.getElementsByName('total')[0].value = zero.toFixed(2);
+	}
+
+	function displayAmount(quantity, menu_item) {
+		// ["q","u","a","n",i] -> length of this minus 1 to get i value
+		row_number = menu_item[menu_item.length-1];
+		menu_price = menuItems[row_number].cost * quantity;
+		document.getElementsByName('cost')[row_number].value = menu_price.toFixed(2);
+
+		var subtotal = 0;
+		for (i = 0; i < menuItems.length; i++) {
+			item_cost = document.getElementsByName('cost')[i].value;
+			subtotal += parseFloat(item_cost);
+		}
+
+		document.getElementById("subtotal").value = subtotal.toFixed(2); //subtotal
+		document.getElementById("tax").value = (subtotal*.0625).toFixed(2); //tax
+		document.getElementById("total").value = (subtotal*1.0625).toFixed(2); //total
+	}
+
+	function validateLastName() {
+		last_name = document.getElementsByName("lname")[0].value;
+		last_name = last_name.replace(/^\s+|\s+$/g, '');
+		if (last_name == "") {
+			document.getElementById("lerror").innerHTML = "<span style=\"color:red\">" + "* Please fill in your last name" + "</span>";
+			return false;
+		}
+
+		for (i=0; i<last_name.length; i++) {
+			if (!isNaN(last_name[i])) {
+				document.getElementById("lerror").innerHTML = "<span style=\"color:red\">" + "* Please enter valid letters only" + "</span>";
+				return false;
+			}
+		}
+		document.getElementById("lerror").innerHTML = null;
+		return true;
+	}
+
+	function validatePhoneNum() {
+		phonenum = document.getElementsByName("phone")[0].value;
+		if (phonenum == "") {
+			document.getElementById("perror").innerHTML = "<span style=\"color:red\">" + "* Please fill in your phone" + "</span>";
+			return false;
+		}
+		if (phonenum.length != 12 || phonenum[3] != "-" || phonenum[7] != "-") {
+			document.getElementById("perror").innerHTML = "<span style=\"color:red\">" + "* Correct formation: xxx-xxx-xxxx" + "</span>";
+			return false;
+		}
+		phone_array = phonenum.split("-");
+		for (i=0; i<phone_array.length;i++) {
+			if(isNaN(phone_array[i])) {
+				document.getElementById("perror").innerHTML = "<span style=\"color:red\">" + "* Please enter numbers only" + "</span>";
+				return false;
+			}
+		}
+		document.getElementById("perror").innerHTML = null;
+		return true;
+	}
+
+	function validateStreet() {
+		street = document.getElementsByName('street')[0].value;
+		if (street == "") {
+			document.getElementById("serror").innerHTML = "<span style=\"color:red\">" + "* Please enter street for delivery" + "</span>";
+			return false;
+		}
+		document.getElementById("serror").innerHTML = null;
+		return true;
+	}
+
+	function validateCity() {
+		city = document.getElementsByName('city')[0].value;
+		if (city == "") {
+			document.getElementById("cerror").innerHTML = "<span style=\"color:red\">" + "* Please enter city for delivery" + "</span>";
+			return false;
+		}
+		document.getElementById("cerror").innerHTML = null;
+		return true;
+	}
+
+	d = new Date();
+	var min = d.getMinutes();
+	var hour = d.getHours();
+
+	function confirm() {
+		if (document.getElementsByName("p_or_d")[0].checked) {
+			name_valid = validateLastName();
+			phone_valid = validatePhoneNum();
+			if (name_valid == true && phone_valid == true) {
+				min = min + 15;
+			} else {
+				return false;
+			}
+		}
+
+		if (document.getElementsByName("p_or_d")[1].checked) {
+			name_valid = validateLastName();
+			phone_valid = validatePhoneNum();
+			street_valid = validateStreet();
+			city_valid = validateCity();
+			if (name_valid == true && phone_valid == true && street_valid == true && city_valid == true) {
+				min = min + 30;
+			} else {
+				return false;
+			}
+		}
+
+		if (min >= 60) {
+			min = min - 60;
+			hour++;
+			if (hour == 24) {
+				hour = 0;
+			}
+		}
+
+		hour = ("0" + hour).slice(-2);
+		min = ("0" + min).slice(-2);
+		order_time = hour + ":" + min;
+
+		if (document.getElementsByName("p_or_d")[0].checked) {
+			alert("Thank you for your order. Your order will be ready to pick up at " + order_time + " and will be a total of $" + document.getElementsByName("total")[0].value + ".");
+			return true;
+		} 
+
+		if (document.getElementsByName("p_or_d")[1].checked) {
+			alert("Thank you for your order. Your order will be delivered at " + order_time + " and will be a total of $" + document.getElementsByName("total")[0].value + ".");
+			return true;
+		}
+	}
+
+</script>
+
+<h1>Jade Delight</h1>
+
+<form onsubmit ="return confirm()">
+<p>First Name: <input type="text"  name='fname' /></p>
+<p>Last Name*:  <input type="text"  name='lname' /><span id="lerror" style="padding-left: 1em;"></span></p>
+<p>Street: <input type="text"  name='street' /><span id="serror" style="padding-left: 1em;"></span></p>
+<p>City: <input type="text"  name='city' /><span id="cerror" style="padding-left: 1em;"></span></p>
+<p>Phone*: <input type="text"  name='phone' /><span id="perror" style="padding-left: 1em;">Correct formation: xxx-xxx-xxxx</span></p>
+<p> 
+	<input type="radio"  name="p_or_d" value = "pickup" checked="checked"/>Pickup  
+	<input type="radio"  name='p_or_d' value = 'delivery'/>
+	Delivery
+</p>
+<table border="0" cellpadding="3">
+  <tr>
+    <th>Select Item</th>
+    <th>Item Name</th>
+    <th>Cost Each</th>
+    <th>Total Cost</th>
+  </tr>
+<script language="javascript">
+
+  var s = "";
+  for (i=0; i< menuItems.length; i++)
+  {
+	  s += "<tr><td>";
+	  s += makeSelect("quan" + i, 0, 10);
+	  s += "</td><td>" + menuItems[i].name + "</td>";
+	  s += "<td> $ " + menuItems[i].cost.toFixed(2) + "</td>";
+	  s += "<td>$<input type='text' name='cost'/></td></tr>";
+  }
+  document.writeln(s);
+</script>
+
+<h1 id="prices"></h1>
+
+</table>
+<p>
+	Subtotal: $<input type="text"  name='subtotal' id="subtotal" />
+</p>
+<p>
+	Mass tax 6.25%: $<input type="text"  name='tax' id="tax" />
+</p>
+<p>
+	Total: $<input type="text"  name='total' id="total" />
+</p>
+
+<input type ="submit" value = "Submit Order" onclick="getOrderTime()"/>
+</form>
+
+<h1 id="order_confirmed"></h1>
+</body>
+</html>
